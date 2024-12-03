@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sprite.h"
 class Graphics;
 
 class Game
@@ -12,5 +13,7 @@ class Game
         void gameloop();
         void draw(Graphics &graphics);
         void update(float elapsedtime);
+
+        Sprite _player;
 
 };
