@@ -6,22 +6,21 @@
 #include <map>
 #include <string>
 #include <vector>
-class AnmitedSprite : public Sprite
+class AnimatedSprite : public Sprite
 {
     public:
-        AnmitedSprite();
-        AnmitedSprite(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, float posX, float posY,float timeToUpdate);
+        AnimatedSprite();
+        AnimatedSprite(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, float posX, float posY,float timeToUpdate);
 
-        void playtAnimation(std::string anmition, bool once = false);
+        void playAnimation(std::string anmition, bool once = false);
 
         void update(int elapsedTime);
 
         void draw(Graphics &graphics, int x, int y);
 
-        virtual void setupAnimations();
 
 
-        // ~AnmitedSprite();
+        // ~AnimatedSprite();
 
     protected:
         double _timeToUpdate;
@@ -36,7 +35,9 @@ class AnmitedSprite : public Sprite
 
         void setVisible(bool visible);
 
-        virtual void animationDone(std::string currentAnimation);
+        virtual void animationDone(std::string currentAnimation) = 0;
+
+        virtual void setupAnimations() = 0;
 
     private:
         std::map<std::string, std::vector<SDL_Rect>> _animations;

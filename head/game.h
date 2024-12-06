@@ -1,6 +1,7 @@
 #pragma once
 
-#include "sprite.h"
+#include "animatedsprite.h"
+#include "player.h"
 class Graphics;
 
 class Game
@@ -14,6 +15,6 @@ class Game
         void draw(Graphics &graphics);
         void update(float elapsedtime);
 
-        Sprite _player;
+        Player _player;
 
 };
