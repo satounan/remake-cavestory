@@ -18,7 +18,7 @@ class Graphics
 
         void blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle);
 
-        void filp();
+        void flip();
         //渲染到画面
 
         void clear();

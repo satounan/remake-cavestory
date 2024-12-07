@@ -1,6 +1,12 @@
 #include "player.h"
 #include "animatedsprite.h"
+#include "global.h"
 #include "graphics.h"
+
+namespace player_constants
+{
+    const float WALK_SPEED = 0.2F;
+}
 
 Player::Player(){}
 
@@ -10,19 +16,43 @@ Player::Player(Graphics &graphics, float x, float y):
         graphics.loadImage("../content/sprites/MyChar.png");
 
         this->setupAnimations();
-        this->playAnimation("RunLeft");
+        this->playAnimation("RunRight");
     }
 
 void Player::setupAnimations()
 {
+    this->addAnimation(1, 0, 0, "IdleLeft", 16, 16, Vector2(0,0));
+    this->addAnimation(1, 0, 16, "IdleRight", 16, 16, Vector2(0,0));
     this->addAnimation(3, 0, 0, "RunLeft", 16, 16,Vector2(0, 0));
     this->addAnimation(3, 0, 16, "RunRight", 16, 16, Vector2(0,0));
 }
 
 void Player::animationDone(std::string currentAnimation){}
 
+void Player::moveLeft()
+{
+    this->_dx = -player_constants::WALK_SPEED;
+    this->playAnimation(("RunLeft"));
+    this->_facing = Direction::LEFT;
+}
+
+void Player::moveRight()
+{
+    this->_dx = player_constants::WALK_SPEED;
+    this->playAnimation(("RunRight"));
+    this->_facing = Direction::RIGHT;
+}
+
+void Player::stopMoving()
+{
+    this->_dx = 0.0f;
+    this->playAnimation(this->_facing == Direction::RIGHT ? "IdleRight" : "IdleLeft");
+}
+
 void Player::update(float elapsedTime)
 {
+    this->_x += this->_dx * elapsedTime;
+
     AnimatedSprite::update(elapsedTime);
 }
 

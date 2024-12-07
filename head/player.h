@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animatedsprite.h"
+#include "global.h"
 #include "graphics.h"
 
 class Player: public AnimatedSprite
@@ -11,8 +12,15 @@ class Player: public AnimatedSprite
     void draw(Graphics &graphics);
     void update(float elapsedTime);
 
+    void moveLeft();
+    void moveRight();
+    void stopMoving();
+
     virtual void animationDone(std::string currentAnimation);
     virtual void setupAnimations();
 
     private:
+    float _dx, _dy;
+
+    Direction _facing;
 };

@@ -1,11 +1,20 @@
 #pragma  once
 
+#include <SDL_haptic.h>
 namespace globals {
     const int SCREEN_WIDTH = 640;
-    const int SCREEN_HEIGH = 480;
+    const int SCREEN_HEIGHT = 480;
 
     const float SPRITE_SCALE = 2.0f;
 }
+
+enum class Direction
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
+};
 
 struct Vector2{
     int x,y;

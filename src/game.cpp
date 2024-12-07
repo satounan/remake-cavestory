@@ -15,7 +15,7 @@ namespace {
 Game::Game()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
-    this->gameloop();
+    this->gameLoop();
 }
 
 Game::~Game()
@@ -23,7 +23,7 @@ Game::~Game()
 
 }
 
-void Game::gameloop()
+void Game::gameLoop()
 {
     Graphics graphics;
     Input input;
@@ -52,9 +52,18 @@ void Game::gameloop()
             }
         }
 
-        if (input.wasKeyPresssed(SDL_SCANCODE_ESCAPE))
+        if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE) == true)
         {
             return;
+        }else if (input.isKeyHeld(SDL_SCANCODE_LEFT) == true) {
+            this->_player.moveLeft();
+        }else if (input.isKeyHeld(SDL_SCANCODE_RIGHT) == true) {
+            this->_player.moveRight();
+        }
+        
+        if(!input.isKeyHeld(SDL_SCANCODE_LEFT) && !input.isKeyHeld(SDL_SCANCODE_RIGHT))
+        {
+            this->_player.stopMoving();
         }
 
         const int CURRENT_TIME_MS = SDL_GetTicks();
@@ -71,9 +80,9 @@ void Game::draw(Graphics &graphics)
 
     this->_player.draw(graphics);
 
-    graphics.filp();
+    graphics.flip();
 };
-void Game::update(float elapsedtime)
+void Game::update(float elapsedTime)
 {
-    this->_player.update(elapsedtime);
+    this->_player.update(elapsedTime);
 };

@@ -14,10 +14,10 @@ void Input::keyDownEvent(const SDL_Event& event)
 void Input::keyUpEvent(const SDL_Event& event)
 {
     this->_releasedKeys[event.key.keysym.scancode] = true;
-    this->_heldKeys[event.key.keysym.scancode] = true;
+    this->_heldKeys[event.key.keysym.scancode] = false;
 };
 
-bool Input::wasKeyPresssed(SDL_Scancode key)
+bool Input::wasKeyPressed(SDL_Scancode key)
 {
     return this->_pressedKeys[key];
 };

@@ -11,7 +11,7 @@ class Game
         ~Game();
 
     private:
-        void gameloop();
+        void gameLoop();
         void draw(Graphics &graphics);
         void update(float elapsedtime);
 

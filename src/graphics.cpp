@@ -7,7 +7,7 @@
 
 Graphics::Graphics()
 {
-    SDL_CreateWindowAndRenderer(globals::SCREEN_WIDTH, globals::SCREEN_HEIGH, 0, &this->_window, &this->_renderer);
+    SDL_CreateWindowAndRenderer(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT, 0, &this->_window, &this->_renderer);
     SDL_SetWindowTitle(this->_window, "Cavestory");
 }
 
@@ -30,7 +30,7 @@ void Graphics::blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle,  SDL
     SDL_RenderCopy(this->_renderer, texture, sourceRectangle, destinationRectangle);
 }
 
-void Graphics::Graphics::filp()
+void Graphics::Graphics::flip()
 {
     SDL_RenderPresent(this->_renderer);
 }
