@@ -35,7 +35,7 @@ void Player::moveLeft()
     this->playAnimation(("RunLeft"));
     this->_facing = Direction::LEFT;
 }
-
+//改改可以实现头朝向正确，行走方向错误
 void Player::moveRight()
 {
     this->_dx = player_constants::WALK_SPEED;

@@ -1,4 +1,6 @@
 #include "animatedsprite.h"
+#include "global.h"
+#include "level.h"
 #include <SDL_scancode.h>
 #include <SDL_timer.h>
 #include <input.h>
@@ -30,6 +32,7 @@ void Game::gameLoop()
     SDL_Event event;
 
     this->_player = Player(graphics,100,100);
+    this->_level = Level{"map 1", Vector2(100, 100), graphics};
 
 
     int LAST_UPDATE_TIME = SDL_GetTicks();
@@ -78,6 +81,7 @@ void Game::draw(Graphics &graphics)
 {
     graphics.clear();
 
+    this->_level.draw(graphics);
     this->_player.draw(graphics);
 
     graphics.flip();
@@ -85,4 +89,5 @@ void Game::draw(Graphics &graphics)
 void Game::update(float elapsedTime)
 {
     this->_player.update(elapsedTime);
+    this->_level.update(elapsedTime);
 };
