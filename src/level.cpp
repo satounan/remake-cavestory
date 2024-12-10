@@ -1,11 +1,8 @@
 #include "level.h"
 #include "graphics.h"
 #include "globals.h"
-
 #include "tinyxml2.h"
-
 #include <SDL2/SDL.h>
-
 #include <sstream>
 #include <algorithm>
 #include <cmath>

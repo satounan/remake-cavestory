@@ -7,10 +7,6 @@
 
 class Graphics;
 
-/* Sprite class
- * Holds all information for individual sprites
- */
-
 class Sprite {
 public:
 	Sprite();

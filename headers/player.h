@@ -13,19 +13,10 @@ public:
 	void draw(Graphics &graphics);
 	void update(float elapsedTime);
 
-	/* void moveLeft
-	 * Moves the player left by -dx
-	 */
 	void moveLeft();
 
-	/* void moveRight
-	 * Moves the player right by dx
-	 */
 	void moveRight();
 
-	/* void stopMoving
-	 * Stops moving the player
-	 */
 	void stopMoving();
 
 	virtual void animationDone(std::string currentAnimation);
