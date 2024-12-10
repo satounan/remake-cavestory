@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/head)
+include_directories(${SDL2_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/headers)
 file(GLOB SOURCES "./src/*.cpp")
 
 add_executable(remake_cavestory ${SOURCES})
