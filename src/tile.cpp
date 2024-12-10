@@ -23,4 +23,3 @@ void Tile::draw(Graphics &graphics)
 
     graphics.blitSurface(this->_tileset, &sourceRect, &destRect);
 }
-

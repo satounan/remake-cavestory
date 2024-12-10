@@ -16,7 +16,7 @@ Level::Level(){}
 Level::Level(std::string mapName, Vector2 spawnPoint, Graphics &graphics):
     _mapName(mapName),
     _spawnPoint(spawnPoint),
-    _size(Vector2(0,0))
+    _size(Vector2{0,0})
 {
     this->loadMap(mapName, graphics);
 }
@@ -26,10 +26,12 @@ Level::~Level(){}
 void Level::loadMap(std::string mapName, Graphics &graphics)
 {
     XMLDocument doc;
-    std::stringstream ss{};
+    std::stringstream ss1{};
 
-    ss << "../content/maps/" << mapName << ".tmx";
-    doc.LoadFile(ss.str().c_str());
+    ss1 << "../content/maps/" << mapName << ".tmx\0";
+
+    std::cout << ss1.str();
+    doc.LoadFile(ss1.str().c_str());
 
     XMLElement* mapNode = doc.FirstChildElement("map");
 
@@ -53,6 +55,8 @@ void Level::loadMap(std::string mapName, Graphics &graphics)
             std::stringstream ss;
             // ss << "../content/tilesets/" << source;
             ss << source;
+
+            // std::cout << ss.str();
             pTileset->QueryIntAttribute("firstgid", &firstgid);
             SDL_Texture* tex = SDL_CreateTextureFromSurface(graphics.getRenderer(), graphics.loadImage(ss.str()));
             this->_tilesets.push_back(Tileset(tex, firstgid));
@@ -114,7 +118,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics)
                             int tilesetWidth, tilesetHeight;
                             SDL_QueryTexture(tls.Texture, 0, 0, &tilesetWidth, &tilesetHeight);
                             int tsxx = gid % (tilesetWidth / tileWidth) -1;
-                            tsxx *= 0;
+                            tsxx *= tileWidth;
                             int tsyy = 0;
                             int amt = (gid / (tilesetWidth / tileWidth));
                             tsyy = tileHeight * amt;
@@ -127,8 +131,12 @@ void Level::loadMap(std::string mapName, Graphics &graphics)
                             pTile = pTile->NextSiblingElement("tile");
                         }
                     }
+
+                    pData = pData->NextSiblingElement("data");
                 }
             }
+
+            pLayer = pLayer->NextSiblingElement("layer");
         }
     }
 

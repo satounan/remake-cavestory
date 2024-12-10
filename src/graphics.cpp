@@ -31,7 +31,7 @@ void Graphics::blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle,  SDL
     SDL_RenderCopy(this->_renderer, texture, sourceRectangle, destinationRectangle);
 }
 
-void Graphics::Graphics::flip()
+void Graphics::flip()
 {
     SDL_RenderPresent(this->_renderer);
 }
