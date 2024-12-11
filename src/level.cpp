@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "tinyxml2.h"
 #include <SDL2/SDL.h>
+#include <filesystem>
 #include <sstream>
 #include <algorithm>
 #include <cmath>
@@ -28,8 +29,13 @@ Level::~Level() {
 void Level::loadMap(std::string mapName, Graphics &graphics) {
 	//Parse the .tmx file
 	XMLDocument doc;
-	std::stringstream ss;
-	ss << "/content/maps/" << mapName << ".tmx"; //Pass in Map 1, we get maps/Map 1.tmx
+	// std::stringstream ss;
+	// ss << "/content/maps/" << mapName << ".tmx"; //Pass in Map 1, we get maps/Map 1.tmx
+    std::filesystem::path neow = std::filesystem::current_path();
+    std::filesystem::path fix = replacePathComponentByName(neow, "remake_cavestory", "remake_cavestory/content");
+    std::stringstream ss; 
+    ss << fix.string().c_str() << "/maps/" << mapName << ".tmx";
+
 	doc.LoadFile(ss.str().c_str());
 
 	XMLElement* mapNode = doc.FirstChildElement("map");
