@@ -4,6 +4,7 @@
 #include "tinyxml2.h"
 #include <SDL2/SDL.h>
 #include <filesystem>
+#include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <cmath>
@@ -27,133 +28,142 @@ Level::~Level() {
 
 
 void Level::loadMap(std::string mapName, Graphics &graphics) {
-	//Parse the .tmx file
-	XMLDocument doc;
-	// std::stringstream ss;
-	// ss << "/content/maps/" << mapName << ".tmx"; //Pass in Map 1, we get maps/Map 1.tmx
+    // Parse the .tmx file
+    XMLDocument doc;
     std::filesystem::path neow = std::filesystem::current_path();
-    std::filesystem::path fix = replacePathComponentByName(neow, "remake_cavestory", "remake_cavestory/content");
-    std::stringstream ss; 
-    ss << fix.string().c_str() << "/maps/" << mapName << ".tmx";
+    std::filesystem::path fix = truncatePathAtDirectoryName(neow, "remake_cavestory");
+    std::filesystem::path ss = fix / "content" / "maps" / std::filesystem::path{mapName+".tmx"};
 
-	doc.LoadFile(ss.str().c_str());
+    XMLError result = doc.LoadFile(ss.string().c_str());
+    if (result != XML_SUCCESS) {
+        std::cerr << "Failed to load map file: " << ss << std::endl;
+        return;
+    }
 
-	XMLElement* mapNode = doc.FirstChildElement("map");
+    XMLElement* mapNode = doc.FirstChildElement("map");
+    if (!mapNode) {
+        std::cerr << "Invalid map file format: No 'map' node found." << std::endl;
+        return;
+    }
 
-	//Get the width and the height of the whole map and store it in _size
-	int width, height;
-	mapNode->QueryIntAttribute("width", &width);
-	mapNode->QueryIntAttribute("height", &height);
-	this->_size = Vector2(width, height);
+    // Get the width and the height of the whole map and store it in _size
+    int width, height;
+    if (mapNode->QueryIntAttribute("width", &width) != XML_SUCCESS || 
+        mapNode->QueryIntAttribute("height", &height) != XML_SUCCESS) {
+        std::cerr << "Invalid map file format: Missing or invalid 'width' or 'height' attribute." << std::endl;
+        return;
+    }
+    this->_size = Vector2(width, height);
 
-	//Get the width and the height of the tiles and store it in _tileSize
-	int tileWidth, tileHeight;
-	mapNode->QueryIntAttribute("tilewidth", &tileWidth);
-	mapNode->QueryIntAttribute("tileheight", &tileHeight);
-	this->_tileSize = Vector2(tileWidth, tileHeight);
+    // Get the width and the height of the tiles and store it in _tileSize
+    int tileWidth, tileHeight;
+    if (mapNode->QueryIntAttribute("tilewidth", &tileWidth) != XML_SUCCESS || 
+        mapNode->QueryIntAttribute("tileheight", &tileHeight) != XML_SUCCESS) {
+        std::cerr << "Invalid map file format: Missing or invalid 'tilewidth' or 'tileheight' attribute." << std::endl;
+        return;
+    }
+    this->_tileSize = Vector2(tileWidth, tileHeight);
 
-	//Loading the tilesets
-	XMLElement* pTileset = mapNode->FirstChildElement("tileset");
-	if (pTileset != NULL) {
-		while (pTileset) {
-			int firstgid;
-			const char* source = pTileset->FirstChildElement("image")->Attribute("source");
-			char* path;
-			std::stringstream ss;
-			ss << source;
-			pTileset->QueryIntAttribute("firstgid", &firstgid);
-			SDL_Texture* tex = SDL_CreateTextureFromSurface(graphics.getRenderer(), graphics.loadImage(ss.str()));
-			this->_tilesets.push_back(Tileset(tex, firstgid));
+    // Loading the tilesets
+    XMLElement* pTileset = mapNode->FirstChildElement("tileset");
+    while (pTileset) {
+        int firstgid;
+        const char* source_related = pTileset->FirstChildElement("image")->Attribute("source");
 
-			pTileset = pTileset->NextSiblingElement("tileset");
-		}
-	}
+        const std::string source_wrong = removeLeadingDotDot(source_related); // 相对地址转绝对，截断..
 
-	//Loading the layers
-	XMLElement* pLayer = mapNode->FirstChildElement("layer");
-	if (pLayer != NULL) {
-		while (pLayer) {
-			//Loading the data element
-			XMLElement* pData = pLayer->FirstChildElement("data");
-			if (pData != NULL) {
-				while (pData) {
-					//Loading the tile element
-					XMLElement* pTile = pData->FirstChildElement("tile");
-					if (pTile != NULL) {
-						int tileCounter = 0;
-						while (pTile) {
-							//Build each individual tile here
-							//If gid is 0, no tile should be drawn. Continue loop
-							if (pTile->IntAttribute("gid") == 0) {
-								tileCounter++;
-								if (pTile->NextSiblingElement("tile")) {
-									pTile = pTile->NextSiblingElement("tile");
-									continue;
-								}
-								else {
-									break;
-								}
-							}
+        std::filesystem::path source = fix / std::filesystem::path{"content/"} / source_wrong;
+        if (source.empty()) {
+            std::cerr << "Invalid map file format: Missing 'source' attribute in 'image' element." << std::endl;
+            return;
+        }
+        pTileset->QueryIntAttribute("firstgid", &firstgid);
+        SDL_Surface* surface = graphics.loadImage(source.string());
+        if (!surface) {
+            std::cerr << "Failed to load image: " << source << std::endl;
+            return;
+        }
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(graphics.getRenderer(), surface);
+        SDL_FreeSurface(surface);
+        if (!tex) {
+            std::cerr << "Failed to create texture from surface: " << source << std::endl;
+            return;
+        }
+        this->_tilesets.push_back(Tileset(tex, firstgid));
 
-							//Get the tileset for this specific gid
-							int gid = pTile->IntAttribute("gid");
-							Tileset tls;
-							for (int i = 0; i < this->_tilesets.size(); i++) {
-								if (this->_tilesets[i].FirstGid <= gid) {
-									//This is the tileset we want
-									tls = this->_tilesets.at(i);
-									break;
-								}
-							}
+        pTileset = pTileset->NextSiblingElement("tileset");
+    }
 
-							if (tls.FirstGid == -1) {
-								//No tileset was found for this gid
-								tileCounter++;
-								if (pTile->NextSiblingElement("tile")) {
-									pTile = pTile->NextSiblingElement("tile");
-									continue;
-								}
-								else {
-									break;
-								}
-							}
+    // Loading the layers
+    XMLElement* pLayer = mapNode->FirstChildElement("layer");
+    while (pLayer) {
+        // Loading the data element
+        XMLElement* pData = pLayer->FirstChildElement("data");
+        while (pData) {
+            // Loading the tile element
+            XMLElement* pTile = pData->FirstChildElement("tile");
+            int tileCounter = 0;
+            while (pTile) {
+                // Build each individual tile here
+                // If gid is 0, no tile should be drawn. Continue loop
+                if (pTile->IntAttribute("gid") == 0) {
+                    tileCounter++;
+                    pTile = pTile->NextSiblingElement("tile");
+                    continue;
+                }
 
-							//Get the position of the tile in the level
-							int xx = 0;
-							int yy = 0;
-							xx = tileCounter % width;
-							xx *= tileWidth;
-							yy += tileHeight * (tileCounter / width);
-							Vector2 finalTilePosition = Vector2(xx, yy);
+                // Get the tileset for this specific gid
+                int gid = pTile->IntAttribute("gid");
+                Tileset tls;
+                bool found = false;
+                for (int i = 0; i < this->_tilesets.size(); i++) {
+                    if (this->_tilesets[i].FirstGid <= gid) {
+                        // This is the tileset we want
+                        tls = this->_tilesets.at(i);
+                        found = true;
+                        break;
+                    }
+                }
 
-							//Calculate the position of the tile in the tileset
-							int tilesetWidth, tilesetHeight;
-							SDL_QueryTexture(tls.Texture, NULL, NULL, &tilesetWidth, &tilesetHeight);
-							int tsxx = gid % (tilesetWidth / tileWidth) - 1;
-							tsxx *= tileWidth;
-							int tsyy = 0;
-							int amt = (gid / (tilesetWidth / tileWidth));
-							tsyy = tileHeight * amt;
-							Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
+                if (!found) {
+                    // No tileset was found for this gid
+                    tileCounter++;
+                    pTile = pTile->NextSiblingElement("tile");
+                    continue;
+                }
 
-							//Build the actual tile and add it to the level's tile list
-							Tile tile(tls.Texture, Vector2(tileWidth, tileHeight),
-									finalTilesetPosition, finalTilePosition);
-							this->_tileList.push_back(tile);
-							tileCounter++;
+                // Get the position of the tile in the level
+                int xx = 0;
+                int yy = 0;
+                xx = tileCounter % width;
+                xx *= tileWidth;
+                yy += tileHeight * (tileCounter / width);
+                Vector2 finalTilePosition = Vector2(xx, yy);
 
-							pTile = pTile->NextSiblingElement("tile");
-						}
-					}
+                // Calculate the position of the tile in the tileset
+                int tilesetWidth, tilesetHeight;
+                SDL_QueryTexture(tls.Texture, NULL, NULL, &tilesetWidth, &tilesetHeight);
+                int tsxx = gid % (tilesetWidth / tileWidth) - 1;
+                tsxx *= tileWidth;
+                int tsyy = 0;
+                int amt = (gid / (tilesetWidth / tileWidth));
+                tsyy = tileHeight * amt;
+                Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
 
-					pData = pData->NextSiblingElement("data");
-				}
-			}
+                // Build the actual tile and add it to the level's tile list
+                Tile tile(tls.Texture, Vector2(tileWidth, tileHeight),
+                           finalTilesetPosition, finalTilePosition);
+                this->_tileList.push_back(tile);
+                tileCounter++;
 
-			pLayer = pLayer->NextSiblingElement("layer");
-		}
-	}
+                pTile = pTile->NextSiblingElement("tile");
+            }
 
+            pData = pData->NextSiblingElement("data");
+        }
+
+        pLayer = pLayer->NextSiblingElement("layer");
+    }
 }
 
 void Level::update(int elapsedTime) {

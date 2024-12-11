@@ -1,16 +1,21 @@
 #include "player.h"
 #include "graphics.h"
+#include <filesystem>
+#include "fstools.h"
+
+std::filesystem::path neow = std::filesystem::current_path();
+std::filesystem::path fix = truncatePathAtDirectoryName(neow,"remake_cavestory");
+std::filesystem::path player_path= fix / "content" / "sprites" / "MyChar.png";
 
 namespace player_constants {
 	const float WALK_SPEED = 0.2f;
 }
-
 Player::Player() {}
 
 Player::Player(Graphics &graphics, float x, float y) :
-	AnimatedSprite(graphics, "../content/sprites/MyChar.png", 0, 0, 16, 16, x, y, 100)
+	AnimatedSprite(graphics, player_path.string(), 0, 0, 16, 16, x, y, 100)
 {
-	graphics.loadImage("../content/sprites/MyChar.png");
+	graphics.loadImage(player_path.string());
 
 	this->setupAnimations();
 	this->playAnimation("RunRight");
