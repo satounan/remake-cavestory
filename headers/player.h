@@ -3,6 +3,8 @@
 
 #include "animatedsprite.h"
 #include "globals.h"
+#include "rectangle.h"
+#include <vector>
 
 class Graphics;
 
@@ -21,10 +23,18 @@ public:
 
 	virtual void animationDone(std::string currentAnimation);
 	virtual void setupAnimations();
+
+	void handleTileCollisions(std::vector<Rectangle> &other);
+
+	const float getX() const;
+	const float getY() const;
+
+
 private:
 	float _dx, _dy;
 
 	Direction _facing;
+	bool _grounded;
 };
 
 #endif
