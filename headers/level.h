@@ -4,7 +4,6 @@
 #include <SDL_render.h>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include "tinyxml2.h"
 #include "globals.h"
@@ -48,7 +47,7 @@ private:
 	bool loadTilesets(tinyxml2::XMLElement* mapNode, Graphics &graphics);
 	bool loadLayers(tinyxml2::XMLElement* mapNode);
 
-	
+
 	void loadCollisionRectangles(tinyxml2::XMLElement* mapNode);
 	void loadCollisions(tinyxml2::XMLElement* mapNode);
 
