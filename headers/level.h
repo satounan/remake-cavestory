@@ -1,9 +1,12 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#include <SDL_render.h>
 #include <string>
 #include <vector>
+#include <filesystem>
 
+#include "tinyxml2.h"
 #include "globals.h"
 #include "tile.h"
 #include "rectangle.h"
@@ -40,6 +43,14 @@ private:
 	 * Loads a map
 	 */
 	void loadMap(std::string mapName, Graphics &graphics);
+	bool parseMapFile(const std::string& mapName, tinyxml2::XMLDocument& doc);
+	bool loadMapProperties(tinyxml2::XMLElement* mapNode);
+	bool loadTilesets(tinyxml2::XMLElement* mapNode, Graphics &graphics);
+	bool loadLayers(tinyxml2::XMLElement* mapNode);
+
+	
+	void loadCollisionRectangles(tinyxml2::XMLElement* mapNode);
+	void loadCollisions(tinyxml2::XMLElement* mapNode);
 
 };
 

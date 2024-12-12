@@ -5,9 +5,9 @@
 #include "fstools.h"
 #include "sprite.h"
 
-std::filesystem::path neow = std::filesystem::current_path();
-std::filesystem::path fix = truncatePathAtDirectoryName(neow,"remake_cavestory");
-std::filesystem::path player_path= fix / "content" / "sprites" / "MyChar.png";
+// std::filesystem::path neow = std::filesystem::current_path();
+// std::filesystem::path fix = truncatePathAtDirectoryName(neow,"remake_cavestory");
+// std::filesystem::path player_path= fix / "content" / "sprites" / "MyChar.png";
 
 namespace player_constants {
 	constexpr float WALK_SPEED = 0.2f;
