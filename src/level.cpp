@@ -167,37 +167,30 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
     }
 
     XMLElement* pObjectGroup = mapNode->FirstChildElement("objectgroup");
-    if(pObjectGroup != NULL)
-        {
-            while (pObjectGroup) {
-                const char* name = pObjectGroup->Attribute("name");
-                std::stringstream ss;
-                ss << name;
-                if (ss.str() == "collisions") {
-                    XMLElement* pObject = pObjectGroup->FirstChildElement("object");
-                    if(pObject != NULL)
-                    {
-                        while (pObject) {
-                            float x,y,width,height;
-                            x = pObject->FloatAttribute("x");
-                            y = pObject->FloatAttribute("y");
-                            width = pObject->FloatAttribute("width");
-                            height = pObject->FloatAttribute("height");
-                            this->_collisionRects.push_back(Rectangle
-                            (
-                                std::ceil(x) * globals::SPRITE_SCALE,
-                                std::ceil(y) * globals::SPRITE_SCALE,
-                                std::ceil(width) * globals::SPRITE_SCALE,
-                                std::ceil(height) * globals::SPRITE_SCALE
-                            ));
+    while (pObjectGroup) {
+        const char* name = pObjectGroup->Attribute("name");
+        if (name && std::string(name) == "collisions") {
+            XMLElement* pObject = pObjectGroup->FirstChildElement("object");
+            while (pObject) {
+                float x, y, width, height;
+                x = pObject->FloatAttribute("x");
+                y = pObject->FloatAttribute("y");
+                width = pObject->FloatAttribute("width");
+                height = pObject->FloatAttribute("height");
 
-                            pObject = pObject->NextSiblingElement("object");
-                        }
-                    }
-                }
+                this->_collisionRects.push_back(Rectangle(
+                    std::ceil(x) * globals::SPRITE_SCALE,
+                    std::ceil(y) * globals::SPRITE_SCALE,
+                    std::ceil(width) * globals::SPRITE_SCALE,
+                    std::ceil(height) * globals::SPRITE_SCALE
+                ));
+
+                pObject = pObject->NextSiblingElement("object");
             }
-            pObjectGroup = pObjectGroup->NextSiblingElement("objectgroup");
         }
+
+        pObjectGroup = pObjectGroup->NextSiblingElement("objectgroup");
+    }
 }
 
 void Level::update(int elapsedTime) {
