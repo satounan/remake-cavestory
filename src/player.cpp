@@ -5,9 +5,6 @@
 #include "fstools.h"
 #include "sprite.h"
 
-// std::filesystem::path neow = std::filesystem::current_path();
-// std::filesystem::path fix = truncatePathAtDirectoryName(neow,"remake_cavestory");
-// std::filesystem::path player_path= fix / "content" / "sprites" / "MyChar.png";
 
 namespace player_constants {
 	constexpr float WALK_SPEED = 0.2f;
@@ -16,8 +13,8 @@ namespace player_constants {
 }
 Player::Player() {}
 
-Player::Player(Graphics &graphics, float x, float y) :
-	AnimatedSprite(graphics, player_path.string(), 0, 0, 16, 16, x, y, 100),
+Player::Player(Graphics &graphics, Vector2 spawnPoint) :
+	AnimatedSprite(graphics, player_path.string(), 0, 0, 16, 16, spawnPoint.x, spawnPoint.y, 100),
 	_dx(0),
 	_dy(0),
 	_facing(RIGHT),
@@ -47,7 +44,6 @@ const float Player::getY() const
 {
 	return this->_y;
 }
-
 
 void Player::moveLeft() {
 	this->_dx = -player_constants::WALK_SPEED;
@@ -86,10 +82,7 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 					break;
 				case sides::Side::RIGHT:
 					this->_x = rect.getLeft() - this->_boundingBox.getWidth() - 1;
-					break;
-				case sides::Side::NONE:
-					break;
-				
+					break;			
                 }
 			
 		}
@@ -97,7 +90,6 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 }
 
 void Player::update(float elapsedTime) {
-	//Move by dx
 	if(this->_dy <= player_constants::GRAVITY_CAP)
 	{
 		this->_dy += player_constants::GRAVITY * elapsedTime;

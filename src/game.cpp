@@ -10,7 +10,7 @@
 
 namespace {
 	const int FPS = 50;
-	const int MAX_FRAME_TIME = 5 * 1000 / FPS;
+	const int MAX_FRAME_TIME = 1000 / FPS;
 }
 
 Game::Game() {
@@ -27,8 +27,8 @@ void Game::gameLoop() {
 	Input input;
 	SDL_Event event;
 
-	this->_player = Player(graphics, 280, 252);
 	this->_level = Level("Map1", Vector2(100, 100), graphics);
+	this->_player = Player(graphics, this->_level.getSpawnPoint());
 
 	int LAST_UPDATE_TIME = SDL_GetTicks();
 	//Start the game loop

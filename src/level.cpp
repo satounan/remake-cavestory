@@ -5,16 +5,16 @@
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <filesystem>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <vector>
 #include "fstools.h"
 
 using namespace tinyxml2;
-// std::filesystem::path neow = std::filesystem::current_path();
-// std::filesystem::path fix = truncatePathAtDirectoryName(neow, "remake_cavestory");
 
 Level::Level() {}
 
@@ -121,6 +121,10 @@ bool Level::loadTilesets(XMLElement* mapNode, Graphics &graphics) {
 }
 
 bool Level::loadLayers(XMLElement* mapNode) {
+    if (!mapNode) {
+        return false;
+    }
+
     XMLElement* pLayer = mapNode->FirstChildElement("layer");
     while (pLayer) {
         XMLElement* pData = pLayer->FirstChildElement("data");
@@ -151,24 +155,22 @@ bool Level::loadLayers(XMLElement* mapNode) {
                     continue;
                 }
 
-                int xx = 0;
-                int yy = 0;
-                xx = tileCounter % this->_size.x;
-                xx *= this->_tileSize.x;
-                yy += this->_tileSize.y * (tileCounter / this->_size.x);
+                int xx = tileCounter % this->_size.x * this->_tileSize.x;
+                int yy = this->_tileSize.y * (tileCounter / this->_size.x); // 修正了除法的分母
                 Vector2 finalTilePosition = Vector2(xx, yy);
 
                 int tilesetWidth, tilesetHeight;
-                SDL_QueryTexture(tls.Texture, NULL, NULL, &tilesetWidth, &tilesetHeight);
-                int tsxx = gid % (tilesetWidth / this->_tileSize.x) - 1;
-                tsxx *= this->_tileSize.x;
-                int tsyy = 0;
-                int amt = (gid / (tilesetWidth / this->_tileSize.y));
-                tsyy = this->_tileSize.y * amt;
+                if (SDL_QueryTexture(tls.Texture, NULL, NULL, &tilesetWidth, &tilesetHeight) != 0) {
+                    // 处理 SDL_QueryTexture 失败的情况
+                    return false;
+                }
+
+                int tsxx = (gid % (tilesetWidth / this->_tileSize.x) - 1) * this->_tileSize.x;
+                int tsyy = (gid / (tilesetWidth / this->_tileSize.y)) * this->_tileSize.y;
                 Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
 
                 Tile tile(tls.Texture, Vector2(this->_tileSize.x, this->_tileSize.y),
-                           finalTilesetPosition, finalTilePosition);
+                          finalTilesetPosition, finalTilePosition);
                 this->_tileList.push_back(tile);
                 tileCounter++;
 
@@ -183,51 +185,74 @@ bool Level::loadLayers(XMLElement* mapNode) {
     return true;
 }
 
+void Level::loadObjects(XMLElement* objectGroup, std::function<void(float, float, float, float, XMLElement*)> callback) {
+    XMLElement* pObject = objectGroup->FirstChildElement("object");
+    while (pObject) {
+        float x, y, width, height;
+        if (pObject->QueryFloatAttribute("x", &x) == XML_SUCCESS &&
+            pObject->QueryFloatAttribute("y", &y) == XML_SUCCESS &&
+            pObject->QueryFloatAttribute("width", &width) == XML_SUCCESS &&
+            pObject->QueryFloatAttribute("height", &height) == XML_SUCCESS) {
+            callback(x, y, width, height, pObject);
+        }
+        pObject = pObject->NextSiblingElement("object");
+    }
+}
+
 void Level::loadCollisionRectangles(XMLElement* mapNode) {
     XMLElement* pObjectGroup = mapNode->FirstChildElement("objectgroup");
     while (pObjectGroup) {
         const char* name = pObjectGroup->Attribute("name");
-        if (name && std::string(name) == "collisions") {
-            XMLElement* pObject = pObjectGroup->FirstChildElement("object");
-            while (pObject) {
-                float x, y, width, height;
-                x = pObject->FloatAttribute("x");
-                y = pObject->FloatAttribute("y");
-                width = pObject->FloatAttribute("width");
-                height = pObject->FloatAttribute("height");
+        std::string groupName = name ? name : "";
 
+        if (groupName == "collisions") {
+            loadObjects(pObjectGroup, [this](float x, float y, float width, float height, XMLElement* pObject) {
                 this->_collisionRects.push_back(Rectangle(
                     std::ceil(x) * globals::SPRITE_SCALE,
                     std::ceil(y) * globals::SPRITE_SCALE,
                     std::ceil(width) * globals::SPRITE_SCALE,
                     std::ceil(height) * globals::SPRITE_SCALE
                 ));
-
-                pObject = pObject->NextSiblingElement("object");
-            }
+            });
+        } else if (groupName == "spawns points") {
+            loadObjects(pObjectGroup, [this](float x, float y, float, float ,XMLElement* pObject) {
+                
+                const char* name = pObject->Attribute("name");
+                if (name && std::string(name) == "player") {
+                    this->_spawnPoint = Vector2(std::ceil(x) * static_cast<int>(globals::SPRITE_SCALE),
+                                                std::ceil(y) * static_cast<int>(globals::SPRITE_SCALE));
+                }
+            });
         }
 
         pObjectGroup = pObjectGroup->NextSiblingElement("objectgroup");
     }
 }
+
+
 void Level::update(int elapsedTime) {
 
 }
 
 void Level::draw(Graphics &graphics) {
-	for (int i = 0; i < this->_tileList.size(); i++) {
-		this->_tileList.at(i).draw(graphics);
+	for (auto & tile : _tileList) {
+		tile.draw(graphics);
 	}
 }
 
 std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other)
 {
     std::vector<Rectangle> others;
-    for (int i = 0; i< this->_collisionRects.size(); i++) {
-        if(this->_collisionRects.at(i).collidesWith(other) )
+    for (auto& rect : _collisionRects ) {
+        if(rect.collidesWith(other))
         {
-            others.push_back(this->_collisionRects.at(i));
+            others.push_back(rect);
         }
     }
     return others;
+}
+
+const Vector2 Level::getSpawnPoint() const
+{
+    return this->_spawnPoint;
 }
