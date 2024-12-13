@@ -64,6 +64,14 @@ void Player::stopMoving() {
 
 void Player::handleTileCollisions(std::vector<Rectangle> &other)
 {
+
+	if (other.empty()) {
+        return;
+    }
+
+    int boundingBoxHeight = this->_boundingBox.getHeight();
+    int boundingBoxWidth = this->_boundingBox.getWidth();
+
 	for (auto &rect : other) {
 		sides::Side collisionSide = Sprite::getCollisionSide(rect);
 		if (collisionSide != sides::Side::NONE) {
@@ -73,7 +81,7 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 					this->_dy = 0;
 					break;
 				case sides::Side::BOTTOM:
-					this->_y = rect.getTop() - this->_boundingBox.getHeight() -1;
+					this->_y = rect.getTop() - boundingBoxHeight - 1;
 					this->_dy = 0;
 					this->_grounded = true;
 					break;
@@ -81,10 +89,9 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 					this->_x = rect.getRight() + 1;
 					break;
 				case sides::Side::RIGHT:
-					this->_x = rect.getLeft() - this->_boundingBox.getWidth() - 1;
-					break;			
-                }
-			
+					this->_x = rect.getLeft() - boundingBoxWidth - 1;
+					break;
+			}
 		}
 	}
 }

@@ -4,11 +4,12 @@
 #include "tinyxml2.h"
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
+// #include <sstream>
+// #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -139,17 +140,17 @@ bool Level::loadLayers(XMLElement* mapNode) {
                 }
 
                 int gid = pTile->IntAttribute("gid");
-                Tileset tls;
-                bool found = false;
-                for (int i = 0; i < this->_tilesets.size(); i++) {
-                    if (this->_tilesets[i].FirstGid <= gid) {
-                        tls = this->_tilesets.at(i);
-                        found = true;
+                Tileset tls{};
+                for(auto &tileset : this->_tilesets)
+                {
+                    if(tileset.FirstGid <= gid)
+                    {
+                        tls = tileset;
                         break;
                     }
                 }
 
-                if (!found) {
+                if (tls.FirstGid == -1) {
                     tileCounter++;
                     pTile = pTile->NextSiblingElement("tile");
                     continue;
@@ -214,7 +215,7 @@ void Level::loadCollisionRectangles(XMLElement* mapNode) {
                     std::ceil(height) * globals::SPRITE_SCALE
                 ));
             });
-        } else if (groupName == "spawns points") {
+        } else if (groupName == "spawn points") {
             loadObjects(pObjectGroup, [this](float x, float y, float, float ,XMLElement* pObject) {
                 
                 const char* name = pObject->Attribute("name");
