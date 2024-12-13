@@ -1,9 +1,12 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#include <SDL_render.h>
+#include <functional>
 #include <string>
 #include <vector>
 
+#include "tinyxml2.h"
 #include "globals.h"
 #include "tile.h"
 #include "rectangle.h"
@@ -23,6 +26,8 @@ public:
 
 	std::vector<Rectangle> checkTileCollisions(const Rectangle &other);
 
+	const Vector2 getSpawnPoint() const;
+
 private:
 	std::string _mapName;
 	Vector2 _spawnPoint;
@@ -40,6 +45,16 @@ private:
 	 * Loads a map
 	 */
 	void loadMap(std::string mapName, Graphics &graphics);
+	bool parseMapFile(const std::string& mapName, tinyxml2::XMLDocument& doc);
+	bool loadMapProperties(tinyxml2::XMLElement* mapNode);
+	bool loadTilesets(tinyxml2::XMLElement* mapNode, Graphics &graphics);
+	bool loadLayers(tinyxml2::XMLElement* mapNode);
+
+	void loadObjects(tinyxml2::XMLElement* objectGroup, std::function<void(float, float, float, float, tinyxml2::XMLElement* )> callback);
+
+
+	void loadCollisionRectangles(tinyxml2::XMLElement* mapNode);
+	void loadCollisions(tinyxml2::XMLElement* mapNode);
 
 };
 

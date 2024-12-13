@@ -1,7 +1,7 @@
 #include "sprite.h"
 #include "graphics.h"
 #include "globals.h"
-#include <cstdlib>
+// #include <cstdlib>
 
 Sprite::Sprite() {}
 
@@ -51,7 +51,7 @@ const sides::Side Sprite::getCollisionSide(Rectangle &other) const
 	amtBottom = this->getBoundingBox().getBottom() - other.getTop();
 
 	int vals[4] = { abs(amtRight), abs(amtLeft), abs(amtTop), abs(amtBottom)};
-	int lowest = vals[0];;
+	int lowest = vals[0];
 	for (int i = 0; i < 4; i++) {
 		if (vals[i] < lowest) {
 			lowest = vals[i];

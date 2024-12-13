@@ -74,3 +74,7 @@ inline std::string removeLeadingDotDot(const std::string& input) {
         return input;
     }
 }
+
+std::filesystem::path inline neow = std::filesystem::current_path();
+std::filesystem::path inline fix = truncatePathAtDirectoryName(neow,"remake_cavestory");
+std::filesystem::path inline player_path= fix / "content" / "sprites" / "MyChar.png";

@@ -11,7 +11,7 @@ class Graphics;
 class Player : public AnimatedSprite {
 public:
 	Player();
-	Player(Graphics &graphics, float x, float y);
+	Player(Graphics &graphics, Vector2 spawnPoint);
 	void draw(Graphics &graphics);
 	void update(float elapsedTime);
 
