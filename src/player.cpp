@@ -8,6 +8,8 @@
 
 namespace player_constants {
 	constexpr float WALK_SPEED = 0.2f;
+	constexpr float JUMP_SPEED = 0.7f;
+
 	constexpr float GRAVITY = 0.002f;
 	constexpr float GRAVITY_CAP = 0.8f;
 }
@@ -62,6 +64,16 @@ void Player::stopMoving() {
 	this->playAnimation(this->_facing == RIGHT ? "IdleRight" : "IdleLeft");
 }
 
+void Player::jump()
+{
+	if(this->_grounded)
+	{
+		this->_dy = 0;
+		this->_dy -= player_constants::JUMP_SPEED;
+		this->_grounded = false;
+	}
+}
+
 void Player::handleTileCollisions(std::vector<Rectangle> &other)
 {
 
@@ -77,8 +89,12 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 		if (collisionSide != sides::Side::NONE) {
 			switch (collisionSide) {
 				case sides::Side::TOP:
-					this->_y = rect.getBottom() + 1;
 					this->_dy = 0;
+					this->_y = rect.getBottom() + 1;
+					if (this->_grounded) {
+						this->_dx = 0;
+						this->_x -= this->_facing == RIGHT ? 1 : -1;
+					}
 					break;
 				case sides::Side::BOTTOM:
 					this->_y = rect.getTop() - boundingBoxHeight - 1;
@@ -91,7 +107,25 @@ void Player::handleTileCollisions(std::vector<Rectangle> &other)
 				case sides::Side::RIGHT:
 					this->_x = rect.getLeft() - boundingBoxWidth - 1;
 					break;
+				case sides::Side::NONE:
+					return;
 			}
+		}
+	}
+}
+
+void Player::handleSlopeCollisions(std::vector<Slope> &others)
+{
+	for (auto &other : others) {
+		int b = (other.getP1().y - (other.getSlope() * fabs(other.getP1().x)));
+		
+		int centerX = this->_boundingBox.getCenterX();
+
+		int newY = (other.getSlope() * centerX) + b - 8;// 8是魔法数
+
+		if (this->_grounded) {
+			this->_y = newY - this->_boundingBox.getHeight();
+			this->_grounded = true;
 		}
 	}
 }

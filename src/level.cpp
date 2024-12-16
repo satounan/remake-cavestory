@@ -1,6 +1,7 @@
 #include "level.h"
 #include "graphics.h"
 #include "globals.h"
+#include "rectangle.h"
 #include "slope.h"
 #include "tinyxml2.h"
 #include <SDL2/SDL.h>
@@ -232,34 +233,43 @@ void Level::loadCollisionRectangles(XMLElement* mapNode) {
                 ));
             });
         }else if (groupName == "slopes") {
-                XMLElement* pObject = pObjectGroup->FirstChildElement("object");
-                while (pObject) {
-                    std::vector<Vector2> points;
-                    Vector2 p1 = Vector2(std::ceil(pObject->FloatAttribute("x")), std::ceil(pObject->FloatAttribute("y")));
+            XMLElement* pObject = pObjectGroup->FirstChildElement("object");
+            while (pObject) {
+                std::vector<Vector2> points;
+                Vector2 p1 = Vector2(std::ceil(pObject->FloatAttribute("x")), std::ceil(pObject->FloatAttribute("y")));
 
-                    XMLElement* pPolyline = pObject->FirstChildElement("polyline");
-                    std::vector<std::string> pairs{};
-                    const std::string pointString = pPolyline->Attribute("points");
-                    Utils::split(pointString, pairs, ' ');
+                XMLElement* pPolyline = pObject->FirstChildElement("polyline");
+                std::vector<std::string> pairs{};
+                const std::string pointString = pPolyline->Attribute("points");
+                Utils::split(pointString, pairs, ' ');
 
-                    for (auto& pair : pairs) {
-                        std::vector<std::string> xy{};
-                        Utils::split(pair, xy, ',');
-                        Vector2 p2 = Vector2(std::ceil(std::stof(xy[0])), std::ceil(std::stof(xy[1]))); 
+                for (auto& pair : pairs) {
+                    std::vector<std::string> xy{};
+                    Utils::split(pair, xy, ',');
+                    if (xy.size() == 2) { // Ensure we have both x and y coordinates
+                        Vector2 p2 = Vector2(std::ceil(std::stof(xy[0])), std::ceil(std::stof(xy[1])));
                         points.push_back(p2);
                     }
+                }
 
-                    for(int i = 0; i < points.size(); i += 2)
-                    {
-                        this->_slopes.push_back(Slope(
-                            Vector2((p1.x + points.at(i < 2 ? i : i - 1).x) * globals::SPRITE_SCALE,
-                                    (p1.y + points.at(i < 2 ? i : i - 1).y) * globals::SPRITE_SCALE),
-                            Vector2((p1.x + points.at(i < 2 ? i+ 1 : i).x) * globals::SPRITE_SCALE,
-                                    (p1.y + points.at(i < 2 ? i+ 1 : i).y) * globals::SPRITE_SCALE)
-                        ));
+                // Ensure there are at least two points to form a slope
+                if (points.size() >= 2) {
+                    for (size_t i = 0; i < points.size() - 1; ++i) {
+                        Vector2 start = Vector2(
+                            (p1.x + points[i].x) * globals::SPRITE_SCALE,
+                            (p1.y + points[i].y) * globals::SPRITE_SCALE
+                        );
+                        Vector2 end = Vector2(
+                            (p1.x + points[i + 1].x) * globals::SPRITE_SCALE,
+                            (p1.y + points[i + 1].y) * globals::SPRITE_SCALE
+                        );
+
+                        this->_slopes.push_back(Slope(start, end));
                     }
                 }
-            pObject = pObject->NextSiblingElement("object");
+
+                pObject = pObject->NextSiblingElement("object");
+            }
         }else if (groupName == "spawn points") {
             loadObjects(pObjectGroup, [this](float x, float y, float, float ,XMLElement* pObject) {
                 
@@ -284,6 +294,18 @@ void Level::draw(Graphics &graphics) {
 	for (auto & tile : _tileList) {
 		tile.draw(graphics);
 	}
+}
+
+std::vector<Slope> Level::checkSlopeCollisions(const Rectangle &other)
+{
+    std::vector<Slope>  others;
+    for (auto& slope : _slopes)
+    {
+        if (slope.collidesWith(other)) {
+            others.push_back(slope);
+        }
+    }
+    return others;
 }
 
 std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other)

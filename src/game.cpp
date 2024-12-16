@@ -1,8 +1,10 @@
 #include <SDL2/SDL.h>
+#include <SDL_scancode.h>
 #include <vector>
 #include "game.h"
 #include "graphics.h"
 #include "input.h"
+#include "slope.h"
 
 /* Game class
  * This class holds all information for our main game loop
@@ -58,6 +60,10 @@ void Game::gameLoop() {
 			this->_player.moveRight();
 		}
 
+		if (input.wasKeyPressed(SDL_SCANCODE_Z) ) {//对于英文字母按键需要切换输入法
+			this->_player.jump();
+		}
+
 		if (!input.isKeyHeld(SDL_SCANCODE_LEFT) && !input.isKeyHeld(SDL_SCANCODE_RIGHT)) {
 			this->_player.stopMoving();
 		}
@@ -87,5 +93,11 @@ void Game::update(float elapsedTime) {
 	std::vector<Rectangle> others;
 	if ((others = this->_level.checkTileCollisions(this->_player.getBoundingBox())).size() > 0) {
 		this->_player.handleTileCollisions(others);
+	}
+
+	std::vector<Slope> otherSlopes;
+	if((otherSlopes = this->_level.checkSlopeCollisions(this->_player.getBoundingBox())).size() > 0)
+	{
+		this->_player.handleSlopeCollisions(otherSlopes);
 	}
 }
