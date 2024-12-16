@@ -1,6 +1,7 @@
 #include "level.h"
 #include "graphics.h"
 #include "globals.h"
+#include "slope.h"
 #include "tinyxml2.h"
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
@@ -14,6 +15,7 @@
 #include <string>
 #include <vector>
 #include "fstools.h"
+#include "utils.h"
 
 using namespace tinyxml2;
 
@@ -199,6 +201,20 @@ void Level::loadObjects(XMLElement* objectGroup, std::function<void(float, float
         pObject = pObject->NextSiblingElement("object");
     }
 }
+// fucking crazy currying
+// std::function<std::function<std::function<std::function<std::function<void(XMLElement*)>(float)>(float)>(float)>(float)> curryCallback(std::function<void(float, float, float, float, XMLElement*)> callback) {
+//     return [callback](float x) {
+//         return [callback, x](float y) {
+//             return [callback, x, y](float width) {
+//                 return [callback, x, y, width](float height) {
+//                     return [callback, x, y, width, height](XMLElement* pObject) {
+//                         callback(x, y, width, height, pObject);
+//                     };
+//                 };
+//             };
+//         };
+//     };
+// }
 
 void Level::loadCollisionRectangles(XMLElement* mapNode) {
     XMLElement* pObjectGroup = mapNode->FirstChildElement("objectgroup");
@@ -215,7 +231,36 @@ void Level::loadCollisionRectangles(XMLElement* mapNode) {
                     std::ceil(height) * globals::SPRITE_SCALE
                 ));
             });
-        } else if (groupName == "spawn points") {
+        }else if (groupName == "slopes") {
+                XMLElement* pObject = pObjectGroup->FirstChildElement("object");
+                while (pObject) {
+                    std::vector<Vector2> points;
+                    Vector2 p1 = Vector2(std::ceil(pObject->FloatAttribute("x")), std::ceil(pObject->FloatAttribute("y")));
+
+                    XMLElement* pPolyline = pObject->FirstChildElement("polyline");
+                    std::vector<std::string> pairs{};
+                    const std::string pointString = pPolyline->Attribute("points");
+                    Utils::split(pointString, pairs, ' ');
+
+                    for (auto& pair : pairs) {
+                        std::vector<std::string> xy{};
+                        Utils::split(pair, xy, ',');
+                        Vector2 p2 = Vector2(std::ceil(std::stof(xy[0])), std::ceil(std::stof(xy[1]))); 
+                        points.push_back(p2);
+                    }
+
+                    for(int i = 0; i < points.size(); i += 2)
+                    {
+                        this->_slopes.push_back(Slope(
+                            Vector2((p1.x + points.at(i < 2 ? i : i - 1).x) * globals::SPRITE_SCALE,
+                                    (p1.y + points.at(i < 2 ? i : i - 1).y) * globals::SPRITE_SCALE),
+                            Vector2((p1.x + points.at(i < 2 ? i+ 1 : i).x) * globals::SPRITE_SCALE,
+                                    (p1.y + points.at(i < 2 ? i+ 1 : i).y) * globals::SPRITE_SCALE)
+                        ));
+                    }
+                }
+            pObject = pObject->NextSiblingElement("object");
+        }else if (groupName == "spawn points") {
             loadObjects(pObjectGroup, [this](float x, float y, float, float ,XMLElement* pObject) {
                 
                 const char* name = pObject->Attribute("name");

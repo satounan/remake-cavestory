@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "slope.h"
 #include "tinyxml2.h"
 #include "globals.h"
 #include "tile.h"
@@ -25,6 +26,7 @@ public:
 	void draw(Graphics &graphics);
 
 	std::vector<Rectangle> checkTileCollisions(const Rectangle &other);
+	std::vector<Slope> checkSlopeCollisions(const Rectangle &other);
 
 	const Vector2 getSpawnPoint() const;
 
@@ -40,6 +42,7 @@ private:
 	std::vector<Tile> _tileList;
 	std::vector<Tileset> _tilesets;
 	std::vector<Rectangle> _collisionRects;
+	std::vector<Slope> _slopes;
 
 	/* void loadMap
 	 * Loads a map
