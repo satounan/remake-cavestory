@@ -144,12 +144,15 @@ bool Level::loadLayers(XMLElement* mapNode) {
 
                 int gid = pTile->IntAttribute("gid");
                 Tileset tls{};
+                int closeset = 0;
                 for(auto &tileset : this->_tilesets)
                 {
                     if(tileset.FirstGid <= gid)
                     {
-                        tls = tileset;
-                        break;
+                        if (tileset.FirstGid > closeset) {
+                            closeset = tileset.FirstGid;
+                            tls = tileset;
+                        }
                     }
                 }
 
@@ -170,7 +173,7 @@ bool Level::loadLayers(XMLElement* mapNode) {
                 }
 
                 int tsxx = (gid % (tilesetWidth / this->_tileSize.x) - 1) * this->_tileSize.x;
-                int tsyy = (gid / (tilesetWidth / this->_tileSize.y)) * this->_tileSize.y;
+                int tsyy = ((gid - tls.FirstGid) / (tilesetWidth / this->_tileSize.y)) * this->_tileSize.y;
                 Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
 
                 Tile tile(tls.Texture, Vector2(this->_tileSize.x, this->_tileSize.y),
