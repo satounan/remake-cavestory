@@ -25,4 +25,5 @@ struct AnimatedTileInfo
         int TilesetsFirstGid;
         int StartTileId;
         std::vector<int> TileIds;
+        int Duration;
 };

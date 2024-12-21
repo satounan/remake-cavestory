@@ -1,4 +1,5 @@
 #include "level.h"
+#include "animatedtile.h"
 #include "graphics.h"
 #include "globals.h"
 #include "rectangle.h"
@@ -119,6 +120,24 @@ bool Level::loadTilesets(XMLElement* mapNode, Graphics &graphics) {
         }
         this->_tilesets.push_back(Tileset(tex, firstgid));
 
+        XMLElement* pTileA = pTileset->FirstChildElement("tile");
+        while (pTileA) {
+            AnimatedTileInfo ati;
+            ati.StartTileId = pTileA->IntAttribute("id") + firstgid;
+            ati.TilesetsFirstGid = firstgid;
+            XMLElement * pAnimation = pTileA->FirstChildElement("animation");
+            while (pAnimation) {
+                XMLElement* pFrame = pAnimation->FirstChildElement("frame");
+                while (pFrame) {
+                    ati.TileIds.push_back(pFrame->IntAttribute("tileid") + firstgid);
+                    ati.Duration = pFrame->IntAttribute("duration");
+                    pFrame = pFrame->NextSiblingElement("frame");
+                }
+            }
+            this->_animatedTileInfos.push_back(ati);
+            pTileA = pTileA->NextSiblingElement("tile");
+        }
+
         pTileset = pTileset->NextSiblingElement("tileset");
     }
     return true;
@@ -175,6 +194,7 @@ bool Level::loadLayers(XMLElement* mapNode) {
                 int tsxx = (gid % (tilesetWidth / this->_tileSize.x) - 1) * this->_tileSize.x;
                 int tsyy = ((gid - tls.FirstGid) / (tilesetWidth / this->_tileSize.y)) * this->_tileSize.y;
                 Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
+                // Vector2 finalTilesetPosition = this->getTilesetPosition(tls, gid, this->_tileSize.x, this->_tileSize.y);
 
                 Tile tile(tls.Texture, Vector2(this->_tileSize.x, this->_tileSize.y),
                           finalTilesetPosition, finalTilePosition);
@@ -326,4 +346,15 @@ std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other)
 const Vector2 Level::getSpawnPoint() const
 {
     return this->_spawnPoint;
+}
+
+Vector2 Level::getTilesetPosition(Tileset tls, int gid, int tileWidth, int tileHeight)
+{
+    int tilesetWidth, tilesetHeight;
+    SDL_QueryTexture(tls.Texture, NULL, NULL, &tilesetWidth, &tilesetHeight);
+
+    int tsxx = (gid % (tilesetWidth / this->_tileSize.x) - 1) * this->_tileSize.x;
+    int tsyy = ((gid - tls.FirstGid) / (tilesetWidth / this->_tileSize.y)) * this->_tileSize.y;
+    Vector2 finalTilesetPosition = Vector2(tsxx, tsyy);
+    return finalTilesetPosition;
 }

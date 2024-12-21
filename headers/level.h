@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "animatedtile.h"
 #include "slope.h"
 #include "tinyxml2.h"
 #include "globals.h"
@@ -44,6 +45,9 @@ private:
 	std::vector<Rectangle> _collisionRects;
 	std::vector<Slope> _slopes;
 
+	std::vector<AnimatedTile> _animatedTileList;
+	std::vector<AnimatedTileInfo> _animatedTileInfos;
+
 	/* void loadMap
 	 * Loads a map
 	 */
@@ -59,6 +63,7 @@ private:
 	void loadCollisionRectangles(tinyxml2::XMLElement* mapNode);
 	void loadCollisions(tinyxml2::XMLElement* mapNode);
 
+	Vector2 getTilesetPosition(Tileset tls, int gid, int tileWidth, int tileHeight);
 };
 
 //Tileset structure
